@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: lowband-cam resource stack
+
+Parameters:
+  BucketName: 
+    Type: String
+    Description: S3 bucket name prefix for the lowband-cam application. S3 bucket name must be globally unique.
+  IamUserArn: 
+    Type: String
+    Description: ARN of the application IAM user.
+
+Resources:
+
+  LowbandCamS3HostingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 
+        Ref: BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName:
+          !Join
+            - ''
+            - - !Ref BucketName
+              - '-logs'
+        LogFilePrefix: log
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    DeletionPolicy: Delete
+    DependsOn: LowbandCamS3LogBucket
+
+  LowbandCamS3LogBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 
+        !Join
+          - ''
+          - - !Ref BucketName
+            - '-logs'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      AccessControl: LogDeliveryWrite
+    DeletionPolicy: Delete
+
+  LowbandCamApplicationRole: 
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              AWS: 
+                - 
+                  !Ref IamUserArn
+            Action: 
+              - "sts:AssumeRole"
+      Path: "/"
+
+  LowbandCamApplicationPolicy:
+    Type: AWS::IAM::Policy 
+    Properties:
+      PolicyName: lowband-cam-app-policy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "s3:GetBucketPolicy"
+              - "s3:GetObjectAcl"
+              - "s3:GetObject"
+              - "s3:ListBucket"
+              - "s3:PutObject"
+              - "s3:PutObjectAcl"
+            Resource:
+              - 
+                Fn::Join:
+                - ''
+                - - "arn:aws:s3:::"
+                  - !Ref BucketName
+              - 
+                Fn::Join:
+                - ''
+                - - "arn:aws:s3:::"
+                  - !Ref BucketName
+                  - "/*"
+      Roles:
+        - 
+          Ref: LowbandCamApplicationRole
+
+  LowbandCamUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: LowbandCamUserPool
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: True
+
+  LowbandCamIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: False
+      IdentityPoolName: LowbandCamIdentityPool

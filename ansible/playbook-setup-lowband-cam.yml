@@ -1,0 +1,30 @@
+---
+
+- hosts: 127.0.0.1
+  variables:
+    - bucket_name: 
+  tasks:
+    - name: pip3 install virtualenv
+
+    - name: create ~/lowband-cam
+
+    - name: create virtualenv ~/lowband-cam/venv
+
+    - name: activate venv source venv/bin/activate
+
+    - name: pip3 install awscli
+
+    - name: git pull lowband-cam
+
+    - name: get config from S3
+
+    - name: schedule cron for config file download
+
+    - name: schedule cron for git pull 
+
+    - name: schedule cron for lowband-cam
+            activate venvk && lowband-cam.cam /config
+
+    - name: schedule cron for playbook
+
+    - name: schedule cron for image cleanup
