@@ -1,30 +1,92 @@
 ---
-
 - hosts: 127.0.0.1
-  variables:
+
+  vars:
     - bucket_name: 
+    - repo_url: 
+
   tasks:
-    - name: pip3 install virtualenv
+    - name: pip3 install packages
+      pip:
+        name: "{{ item }}"
+      become: yes
+      become_user: root
+      with_items:
+        - virtualenv
+        - boto
 
-    - name: create ~/lowband-cam
+    - name: add lowband_cam group
+      group:
+        name: lowband_cam
+        state: present
+      become: yes
+      become_user: root
 
-    - name: create virtualenv ~/lowband-cam/venv
-
-    - name: activate venv source venv/bin/activate
-
-    - name: pip3 install awscli
+    - name: add lowband_cam01 user
+      user:
+        name: lowband_cam01
+        group: lowband_cam
+        shell: /bin/bash
+      become: yes
+      become_user: root
 
     - name: git pull lowband-cam
+      git:
+        repo: "{{ repo_url }}"
+        dest: ~/lowband-cam/
+        version: development
+        force: yes
+      become: yes
+      become_user: lowband_cam01
+
+    - name: create virtualenv ~/lowband-cam/venv
+      command: python3 -m venv ~/lowband-cam/venv
+      become: yes
+      become_user: lowband_cam01
+
+    - name: pip3 install awscli
+      pip: 
+        name: awscli 
+        virtualenv: ~/lowband-cam/venv
+      become: yes
+      become_user: lowband_cam01
+
+    - name: pip3 install lowband-cam requirements
+      pip: 
+        requirements: ~/lowband-cam/lowband_cam/requirements.txt
+        virtualenv: ~/lowband-cam/venv
+      become: yes
+      become_user: lowband_cam01
 
     - name: get config from S3
-
-    - name: schedule cron for config file download
-
-    - name: schedule cron for git pull 
+      s3:
+        bucket: "{{ bucket_name }}"
+        object: /config/config.ini
+        dest: ~/lowband-cam/config/config.ini
+        mode: get
+      become: yes
+      become_user: lowband_cam01
 
     - name: schedule cron for lowband-cam
-            activate venvk && lowband-cam.cam /config
+      cron:
+        name: run lowband cam application
+        minute: "*/3"
+        job: "source ~/lowband-cam/venv/bin/activate && cd ~/lowband-cam && python -m lowband_cam.cam"
+      become: yes
+      become_user: lowband_cam01
 
-    - name: schedule cron for playbook
+    - name: image cleanup - get files older than 30 days
+      find:
+        paths: ~/lowband-cam/images
+        age: 30d 
+      register: old_images
+      become: yes
+      become_user: lowband_cam01
 
-    - name: schedule cron for image cleanup
+    - name: 
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ old_images.files }}"
+      become: yes
+      become_user: lowband_cam01

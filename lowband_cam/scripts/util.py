@@ -58,3 +58,6 @@ def transform_save_image(filename, img_height, img_width, img_optimize, img_qual
     except TypeError:
         logging.error(
             "Type error: confirm image height, width, quality are integers, and image optimize is a boolean.")
+    except OSError:
+        logging.error("Error locating image file.")
+        
