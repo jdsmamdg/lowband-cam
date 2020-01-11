@@ -84,6 +84,7 @@
       cron:
         name: run lowband cam playbook
         hour: "*"
+        minute: "7"
         job: ansible-playbook ~/lowband-cam/lowband_cam/ansible/playbook-setup-lowband-cam.yml --extra-vars "repo_url={{ repo_url }} bucket_name={{ bucket_name }}"
       become: yes
       become_user: root
