@@ -86,7 +86,7 @@
         hour: "*"
         job: ansible-playbook ~/lowband-cam/lowband_cam/ansible/playbook-setup-lowband-cam.yml --extra-vars "repo_url={{ repo_url }} bucket_name={{ bucket_name }}"
       become: yes
-      become_user: lowband_cam01
+      become_user: root
 
     - name: image cleanup - get files older than 30 days
       find:
