@@ -9,6 +9,7 @@
     - name: pip3 install packages
       pip:
         name: "{{ item }}"
+        state: latest
       become: yes
       become_user: root
       with_items:
@@ -27,6 +28,7 @@
         name: lowband_cam01
         group: lowband_cam
         shell: /bin/bash
+        state: present
       become: yes
       become_user: root
 
@@ -36,6 +38,7 @@
         dest: ~/lowband-cam/
         version: development
         force: yes
+        update: yes
       become: yes
       become_user: lowband_cam01
 
@@ -48,6 +51,7 @@
       pip: 
         name: awscli 
         virtualenv: ~/lowband-cam/venv
+        state: latest
       become: yes
       become_user: lowband_cam01
 
@@ -55,6 +59,7 @@
       pip: 
         requirements: ~/lowband-cam/lowband_cam/requirements.txt
         virtualenv: ~/lowband-cam/venv
+        state: latest
       become: yes
       become_user: lowband_cam01
 
@@ -72,6 +77,14 @@
         name: run lowband cam application
         minute: "*/3"
         job: "source ~/lowband-cam/venv/bin/activate && cd ~/lowband-cam && python -m lowband_cam.cam"
+      become: yes
+      become_user: lowband_cam01
+
+    - name: schedule this playbook to run periodically
+      cron:
+        name: run lowband cam playbook
+        hour: "*"
+        job: ansible-playbook ~/lowband-cam/lowband_cam/ansible/playbook-setup-lowband-cam.yml --extra-vars "repo_url={{ repo_url }} bucket_name={{ bucket_name }}"
       become: yes
       become_user: lowband_cam01
 
