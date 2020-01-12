@@ -76,7 +76,7 @@
       cron:
         name: run lowband cam application
         minute: "*/3"
-        job: "source ~/lowband-cam/venv/bin/activate && cd ~/lowband-cam && python -m lowband_cam.cam"
+        job: "cd ~/lowband-cam && /home/lowband_cam01/lowband-cam/venv/bin/python -m lowband_cam.cam"
       become: yes
       become_user: lowband_cam01
 
@@ -85,7 +85,7 @@
         name: run lowband cam playbook
         hour: "*"
         minute: "7"
-        job: ansible-playbook ~/lowband-cam/lowband_cam/ansible/playbook-setup-lowband-cam.yml --extra-vars "repo_url={{ repo_url }} bucket_name={{ bucket_name }}"
+        job: ansible-playbook /home/lowband_cam01/lowband-cam/ansible/playbook-setup-lowband-cam.yml --extra-vars "repo_url={{ repo_url }} bucket_name={{ bucket_name }}"
       become: yes
       become_user: root
 
