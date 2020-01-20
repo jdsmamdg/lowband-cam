@@ -9,7 +9,7 @@
     - name: pip3 install packages
       pip:
         name: "{{ item }}"
-        state: latest
+        state: present
       become: yes
       become_user: root
       with_items:
@@ -47,19 +47,11 @@
       become: yes
       become_user: lowband_cam01
 
-    - name: pip3 install awscli
-      pip: 
-        name: awscli 
-        virtualenv: ~/lowband-cam/venv
-        state: latest
-      become: yes
-      become_user: lowband_cam01
-
     - name: pip3 install lowband-cam requirements
       pip: 
         requirements: ~/lowband-cam/lowband_cam/requirements.txt
         virtualenv: ~/lowband-cam/venv
-        state: latest
+        state: present
       become: yes
       become_user: lowband_cam01
 
@@ -91,8 +83,8 @@
 
     - name: image cleanup - get files older than 30 days
       find:
-        paths: ~/lowband-cam/images
-        age: 30d 
+        paths: /home/lowband_cam01/lowband-cam/images
+        age: 45d 
       register: old_images
       become: yes
       become_user: lowband_cam01
